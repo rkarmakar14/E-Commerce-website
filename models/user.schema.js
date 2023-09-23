@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import AuthRoles from "../utilities/user.role";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
+import config from "../config";
 
 const userSchema = mongoose.Schema(
     {
@@ -37,10 +38,37 @@ const userSchema = mongoose.Schema(
         timestamps: true 
     }
 )
+
 // emcrypt the password before saving it to database
+userSchema.pre('save', async function(next){
+    if(!this.isModified('password')) return next();
+    this.password = await bcrypt.hash(this.password, 10)
+})
 // adding features/methods directly to schema
 // compare the password
+userSchema.methods = {
+    comparePassword: function(enteredPassword){
+        bcrypt.compare(enteredPassword, this.password)
+    },
 //generate JWToken
+    generateJwtToken : function(){
+        jwt.sign(
+            {
+                _id:_this._id,
+                name:this.name,
+                email: this.email
+            },
+            config.JWT_SECRET,
+            {
+                expiresIn: config.JWT_EXPIRY
+            }
+        )
+    }
+
+}
+
+
+
 
 export default mongoose.Schema("User",userSchema);
 
