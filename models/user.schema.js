@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { now } from "mongoose";
 import AuthRoles from "../utilities/user.role";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import config from "../config";
+import crypto from "crypto"
 
 const userSchema = mongoose.Schema(
     {
@@ -30,8 +31,8 @@ const userSchema = mongoose.Schema(
         // the default value is given beacuse it will auto select the user role
         default: AuthRoles.USER,
     },
-    passwordforgettentoken: String,
-    passwordforgettenexpiry: Date,
+    passwordForgettenToken: String,
+    passwordForgettenExpiry: Date,
     },
     // adding cretedAt and updateAt two properties to the schema
     {
@@ -63,12 +64,23 @@ userSchema.methods = {
                 expiresIn: config.JWT_EXPIRY
             }
         )
+    },
+    // generate forget password token
+    generateForgetPasswordToken : function(){
+        const forgetToken = crypto.randomBytes (16).toString ("hex")
+
+     // save to DB
+    this.generateForgetPasswordToken = crypto.createHmac('sha512')
+     .update(forgetToken)
+     .digest("hex");
+    
+     this.passwordForgettenExpiry = Date.now() + 20 * 60 * 1000
+
+     // return this value to user
+     return forgetToken;
     }
 
 }
-
-
-
 
 export default mongoose.Schema("User",userSchema);
 
