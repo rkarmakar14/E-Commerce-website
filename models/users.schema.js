@@ -82,5 +82,5 @@ userSchema.methods = {
 
 }
 
-export default mongoose.Schema("User",userSchema);
+export default mongoose.Schema("Users",userSchema);
 
